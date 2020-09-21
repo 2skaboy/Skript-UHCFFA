@@ -57,6 +57,10 @@ on rightclick with diamond axe:
 			equip player with iron boots of protection 2
 			stop
 
+on death:
+	set death message to " "
+	broadcast "&c%attacker% &7vien de tuer &c%victim%"
+	stop
 
 on click:
 	if {disable.pvp.time.%player%} is true:
@@ -80,5 +84,5 @@ on respawn:
 		feed the player by 10 beefs
 		stop
 
-on walking on red stained glass:
+on walking on red stained glass: # IL FAUT QUE LE SPAWN ARENE SOIT SUR DES BLOCS DE VITRES ROUGES
 	set {disable.pvp.time.%player%} to true
