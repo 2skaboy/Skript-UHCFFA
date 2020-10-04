@@ -1,3 +1,18 @@
+command /help [<text>]:
+	trigger:
+		if arg-1 is "uhcffa":
+			send "&3----------------------------------------------------------" to player
+			send " " to player
+			send "&b/ffaop set lobby &f: Set the UHCffa lobby in your location" to player
+			send "&b/ffaop set arena &f: Set the UHCffa arena in your location" to player
+			send " " to player
+			send "&b/ffa &f: Teleport player to UHCffa lobby" to player
+			send "&b/lobby &f: Teleport player to UHCffa lobby" to player
+			send " " to player
+			send "&c/!\ The UHCffa arena must be in red stained glass /!\" to player
+			send " " to player
+			send "&3----------------------------------------------------------" to player
+
 command /ffaop [<text>] [<text>]:
 	permission: op
 	trigger:
@@ -27,40 +42,126 @@ command /ffa:
 		wait a tick
 		set slot 0 of player to diamond axe named "&3&lJouer &r&7(clique-droit)"
 		set slot 8 of player to bed named "&c&lRetour au lobby"
-		wait a tick
+		wait 3 tick
+
+command /lobby:
+	trigger:
+		send "&6Téléportation ..."
+		wait 20 tick
+		teleport player to {ffa.lobby}
+		set slot 0 of player to diamond axe named "&3&lJouer &r&7(clique-droit)"
+		set slot 8 of player to bed named "&c&lRetour au lobby"
+		stop
+
+variables:
+	{kill counter.%player%.kills_session} = 0
+	{kill counter.%player%.kills_session_max} = 0
+	{kill counter.%player%.kills_total} = 0
+
+on death:
+	attacker is a player
+	add 1 to {kill counter.%attacker%.kills_total}
+	add 1 to {kill counter.%attacker%.kills_session}
+	set {stats.ratio.%attacker%} to {stats.kill.%attacker%} / {stats.mort.%attacker%}
+	{kill counter.%attacker%.kills_session} is greater than {kill counter.%attacker%.kills_session_max}:
+		set {kill counter.%attacker%.kills_session_max} to {kill counter.%attacker%.kills_session}
+
+on death of player:
+	set {kill counter.%player%.kills_session} to 0
+
+
+#====================================================================#
+#                                                                    #
+#                      @----- CONDITIONS -----@                      #
+#                                                                    #
+#====================================================================#
+
+on inventory click:
+	if player is not op:
+		cancel event
+
+on break:
+	if player is not op: 
+		cancel event
+
+on mine:
+	if player is not op: 
+		cancel event
+
+on build:
+	if player is not op:
+		cancel event
+
+on fade:
+	if player is not op: 
+		cancel event 
+
+on form:
+	if player is not op: 
+		cancel event
+
+on ignition:
+	if player is not op: 
+		cancel event
+
+on physics:
+	if player is not op: 
+		cancel event
+
+on place:
+	if player is not op: 
+		cancel event
+
+on drop:
+	cancel event
+
+
+on rightclick with diamond axe:
+	if name of tool is "&3&lPlay &r&7(right-click)":
+		set name of sidebar of player to "   &6&lUHC&f&lFFA   "
+		set score "                    " in sidebar of player to 11
+		set score " &6» Kills : &f%{kill counter.%uuid of player%.kills_total}%" in sidebar of player to 10
+		set score " &6» Kill Streak : &f%{kill counter.%uuid of player%.kills_session}%" in sidebar of player to 9
+		set score " &6» Max Kill Streak : &f%{kill counter.%uuid of player%.kills_session_max}%" in sidebar of player to 8
+		set score "                    " in sidebar of player to 7
+		set score " &6» Death : &f" in sidebar of player to 6
+		set score "                    " in sidebar of player to 5
+		set score " &6» Ratio : &f%{stats.ratio.%uuid of player%}%" in sidebar of player to 4
+		set score " " in sidebar of player to 3
+		set score " &6» &bConnectés: &e(&b%amount of players%&e/&b%max players%&e)" in sidebar of player to 2
+		set score " &3ip.server.net" in sidebar of player to 1
+		set score " " in sidebar of player to 0
+		wait 10 ticks
+		teleport player to {ffa.arena}
+		send "&6&lTéléportation au FFA ..."
+		set player's gamemode to adventure
+		heal the player by 10 hearts
+		feed the player by 10 beefs
+		clear player's inventory
+
+		# INVENTORY OF PLAYER
+
+		set slot 0 of player to iron sword of sharpness 3 
+		set slot 1 of player to Fishing Rod
+		set slot 2 of player to Bow of power 2
+		set slot 3 of player to 6 Golden Apple
+		set slot 4 of player to 16 Arrow
+		set slot 8 of player to 16 cooked beef
+		equip player with iron helmet of protection 2
+		equip player with iron chestplate of protection 2
+		equip player with iron leggings of protection 2 
+		equip player with iron boots of protection 2
+		stop
 
 on rightclick with bed:
 	if name of tool is "&c&lRetour au lobby":
-		if player is in world "world":
-			make player execute command "hub"
-			set player's gamemode to adventure
-			if player is op:
-				set player's gamemode to creative
-				stop
-
-on rightclick with diamond axe:
-	if name of tool is "&3&lJouer &r&7(clique-droit)":
-		if player is in world "world":
-			teleport player to {ffa.arena}
-			send "&6&lTéléportation au FFA"
-			set player's gamemode to adventure
-			clear player's inventory
-			set slot 0 of player to iron sword of sharpness 3 
-			set slot 1 of player to Fishing Rod
-			set slot 2 of player to Bow of power 2
-			set slot 3 of player to 6 Golden Apple
-			set slot 4 of player to 16 Arrow
-			set slot 8 of player to 16 cooked beef
-			equip player with iron helmet of protection 2
-			equip player with iron chestplate of protection 2
-			equip player with iron leggings of protection 2 
-			equip player with iron boots of protection 2
+		make player execute command "lobby"
+		set player's gamemode to adventure
+		heal the player by 10 hearts
+		feed the player by 10 beefs
+		if player is op:
+			set player's gamemode to creative
 			stop
-
-on death:
-	set death message to " "
-	broadcast "&c%attacker% &7vien de tuer &c%victim%"
-	stop
 
 on click:
 	if {disable.pvp.time.%player%} is true:
@@ -69,7 +170,14 @@ on click:
 		set {disable.pvp.time.%player%} to false
 		stop
 
+on death:
+	set death message to " "
+	broadcast "&c%victim% &7s'est fait tuer par &c%attacker%"
+	stop
+
 on damage:
+	if {disable.pvp.time.%player%} is true:
+		cancel event
     if damage was caused by fall:
         cancel event
 
@@ -84,5 +192,5 @@ on respawn:
 		feed the player by 10 beefs
 		stop
 
-on walking on red stained glass: # IL FAUT QUE LE SPAWN ARENE SOIT SUR DES BLOCS DE VITRES ROUGES
+on walking on red stained glass:
 	set {disable.pvp.time.%player%} to true
